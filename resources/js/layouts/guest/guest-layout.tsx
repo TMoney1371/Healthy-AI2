@@ -30,7 +30,7 @@ export default function GuestLayout({ children }: PropsWithChildren) {
                         </div>
                     </Link>
 
-                    <nav className="flex items-center gap-3 hidden">
+                    <nav className="flex items-center gap-3">
                         {auth.user ? (
                             <Button variant="outline" asChild>
                                 <Link href={dashboard()}>Dashboard</Link>
