@@ -1,136 +1,144 @@
-# Filter Large Apple Health Export Files
+# Filter Large Apple Health Export Files (3GB+ Files!)
 
-If your Apple Health export.xml file is too large (over 20MB), use this Python script to filter it by date range.
+Your Apple Health `export.html` file is **3GB**? That's normal! Use this script to shrink it to ~10MB.
 
-## Option 1: Python Script (Easiest)
+## Quick Start - Python Script (Recommended)
 
 ### Step 1: Install Python
-Make sure you have Python 3 installed on your computer.
+Make sure Python 3 is installed: https://www.python.org/downloads/
 
 ### Step 2: Create the Script
-Save this as `filter_health_data.py`:
+Save this as `filter_health_data.py` in the **same folder** as your `export.html`:
 
 ```python
-import xml.etree.ElementTree as ET
-from datetime import datetime
+from datetime import datetime, timedelta
 import sys
+import re
+import os
 
-def filter_apple_health_xml(input_file, output_file, days_back=90):
+def filter_apple_health_html(input_file, output_file, days_back=90):
     """
-    Filter Apple Health XML to only include data from the last N days.
+    Filter 3GB Apple Health HTML files to just the last N days.
+    Reduces file from 3GB to ~10MB!
+    """
+    print(f"📱 Loading {input_file}...")
+    print(f"   Original size: {os.path.getsize(input_file) / (1024*1024*1024):.2f} GB")
+    print(f"   This may take 1-2 minutes for large files...")
     
-    Args:
-        input_file: Path to the original export.xml file
-        output_file: Path where the filtered XML will be saved
-        days_back: Number of days to include (default 90)
-    """
-    print(f"Loading {input_file}...")
-    tree = ET.parse(input_file)
-    root = tree.getroot()
+    with open(input_file, 'r', encoding='utf-8') as f:
+        content = f.read()
     
     # Calculate cutoff date
-    from datetime import timedelta
     cutoff_date = datetime.now() - timedelta(days=days_back)
     cutoff_str = cutoff_date.strftime('%Y-%m-%d')
     
-    print(f"Filtering data from {cutoff_str} onwards...")
+    print(f"\n✂️  Filtering to keep data from {cutoff_str} onwards...")
     
-    # Filter records
+    # Split into lines and filter
+    lines = content.split('\n')
+    filtered_lines = []
+    records_kept = 0
     records_removed = 0
-    workouts_removed = 0
     
-    for record in root.findall('.//Record'):
-        start_date = record.get('startDate', '')
-        if start_date < cutoff_str:
-            root.remove(record)
-            records_removed += 1
+    for line in lines:
+        # Check if line contains a date in YYYY-MM-DD format
+        date_match = re.search(r'(\d{4}-\d{2}-\d{2})', line)
+        
+        if date_match:
+            date_str = date_match.group(1)
+            if date_str >= cutoff_str:
+                filtered_lines.append(line)
+                records_kept += 1
+            else:
+                records_removed += 1
+        else:
+            # Keep non-data rows (HTML structure, headers, etc.)
+            filtered_lines.append(line)
     
-    for workout in root.findall('.//Workout'):
-        start_date = workout.get('startDate', '')
-        if start_date < cutoff_str:
-            root.remove(workout)
-            workouts_removed += 1
+    print(f"   ✅ Kept: {records_kept:,} records")
+    print(f"   🗑️  Removed: {records_removed:,} old records")
     
-    print(f"Removed {records_removed} old records and {workouts_removed} old workouts")
+    # Write filtered content
+    print(f"\n💾 Saving to {output_file}...")
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(filtered_lines))
     
-    # Save filtered XML
-    print(f"Saving filtered data to {output_file}...")
-    tree.write(output_file, encoding='utf-8', xml_declaration=True)
+    # Show results
+    filtered_size_mb = os.path.getsize(output_file) / (1024 * 1024)
+    original_size_gb = os.path.getsize(input_file) / (1024 * 1024 * 1024)
     
-    # Get file sizes
-    import os
-    original_size = os.path.getsize(input_file) / (1024 * 1024)  # MB
-    filtered_size = os.path.getsize(output_file) / (1024 * 1024)  # MB
-    
-    print(f"\nDone!")
-    print(f"Original file: {original_size:.2f} MB")
-    print(f"Filtered file: {filtered_size:.2f} MB")
-    print(f"Reduction: {((original_size - filtered_size) / original_size * 100):.1f}%")
+    print(f"\n🎉 Done!")
+    print(f"   Original: {original_size_gb:.2f} GB")
+    print(f"   Filtered: {filtered_size_mb:.2f} MB")
+    print(f"   Reduction: {(1 - (filtered_size_mb / (original_size_gb * 1024))) * 100:.1f}%")
+    print(f"\n📤 Now upload '{output_file}' to your health tracker!")
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python filter_health_data.py export.xml [days_back]")
-        print("Example: python filter_health_data.py export.xml 90")
-        print("\nThis will create export_filtered.xml with data from the last 90 days")
+        print("=" * 70)
+        print("🍎 Apple Health Data Filter - Shrink 3GB Files to ~10MB!")
+        print("=" * 70)
+        print("\n📖 Usage:")
+        print("   python filter_health_data.py export.html [days]")
+        print("\n📝 Examples:")
+        print("   python filter_health_data.py export.html 30   # Last 30 days (~5 MB)")
+        print("   python filter_health_data.py export.html 90   # Last 90 days (~10 MB)")
+        print("   python filter_health_data.py export.html 180  # Last 6 months (~15 MB)")
+        print("\n💡 Tip: Start with 30 days first to get a small file!")
+        print("=" * 70)
         sys.exit(1)
     
     input_file = sys.argv[1]
     days_back = int(sys.argv[2]) if len(sys.argv) > 2 else 90
-    output_file = input_file.replace('.xml', '_filtered.xml')
     
-    filter_apple_health_xml(input_file, output_file, days_back)
+    if not os.path.exists(input_file):
+        print(f"❌ Error: File '{input_file}' not found!")
+        print(f"   Make sure you're in the apple_health_export folder")
+        print(f"   Current directory: {os.getcwd()}")
+        sys.exit(1)
+    
+    # Create output filename
+    base_name = os.path.splitext(input_file)[0]
+    extension = os.path.splitext(input_file)[1]
+    output_file = f"{base_name}_last_{days_back}_days{extension}"
+    
+    filter_apple_health_html(input_file, output_file, days_back)
 ```
 
-### Step 3: Run the Script
+### Step 3: Run It!
+
+**In Terminal/Command Prompt:**
 ```bash
-# Filter to last 30 days
-python filter_health_data.py export.xml 30
+# Navigate to your apple_health_export folder
+cd ~/Downloads/apple_health_export
 
-# Filter to last 90 days (default)
-python filter_health_data.py export.xml 90
+# Run the filter (last 90 days recommended)
+python filter_health_data.py export.html 90
 
-# Filter to last 180 days
-python filter_health_data.py export.xml 180
+# Upload the resulting file: export_last_90_days.html
 ```
 
-This creates `export_filtered.xml` which should be much smaller!
+**This will shrink your 3GB file to ~10MB!** 
 
 ---
 
-## Option 2: Manual Text Editing (No Programming)
+## Why So Large?
 
-### Using TextEdit (Mac) or Notepad++ (Windows):
+Apple Health HTML files include:
+- Every heart rate measurement (could be millions!)
+- Every step count
+- Every workout detail
+- Years of historical data
 
-1. **Open export.xml** in a text editor
-2. **Search for recent dates** (e.g., search for "2025-" or "2024-")
-3. **Copy the XML header** (first ~10 lines until `<HealthData>`)
-4. **Copy only recent records** you want to keep
-5. **Add the closing tag** `</HealthData>` at the end
-6. **Save as new file** (e.g., `export_recent.xml`)
-
----
-
-## Option 3: Online XML Splitter
-
-Use **xmlgrid.net** or **codebeautify.org/xmlviewer**:
-1. Upload your export.xml
-2. Filter/search by date attributes
-3. Export only matching records
-4. Download the filtered XML
+Filtering to 90 days gives you plenty of recent data in a tiny file.
 
 ---
 
-## Option 4: Request Upload Limit Increase
+## Recommended Settings
 
-Contact us through the app settings to request a higher upload limit for your account. We can increase it to 100MB or 500MB if needed.
+- **30 days**: ~3-5 MB (fastest import, recent trends)
+- **90 days**: ~8-12 MB (good balance)  ⭐ **Recommended**
+- **180 days**: ~15-18 MB (6 months history)
 
----
-
-## Recommended Date Ranges
-
-- **Last 30 days**: Quick import, recent data only (~1-5 MB)
-- **Last 90 days**: Good balance of data and size (~5-10 MB)
-- **Last 180 days**: 6 months of history (~10-15 MB)
-- **Last 365 days**: Full year (~15-20 MB)
-
-After filtering, upload the new XML file to the app!
+Start with 30 days if you want the smallest file!
