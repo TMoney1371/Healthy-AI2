@@ -75,10 +75,31 @@ export default function AppleHealthImport() {
                             <li>
                                 <strong>For large files (over 20MB):</strong> In Files app, extract the ZIP, 
                                 open the <strong>apple_health_export</strong> folder, 
-                                then upload the <strong>export.xml</strong> file (much smaller!)
+                                then upload the <strong>export.xml</strong> file
                             </li>
                             <li>Otherwise, upload the whole ZIP file here</li>
                         </ol>
+                    </AlertDescription>
+                </Alert>
+
+                {/* File Size Warning */}
+                <Alert className="border-amber-500/50 bg-amber-500/5">
+                    <Info className="h-4 w-4" />
+                    <AlertTitle>File Still Too Large?</AlertTitle>
+                    <AlertDescription className="space-y-2">
+                        <p className="text-sm">
+                            If your XML file is still over 20MB, you can use an online XML editor to filter recent data:
+                        </p>
+                        <ol className="ml-4 list-inside list-decimal space-y-1 text-sm">
+                            <li>Visit <strong>codebeautify.org/xmlviewer</strong> on your computer</li>
+                            <li>Upload your export.xml file</li>
+                            <li>Use "Find" to search for recent dates (e.g., "2024" or "2025")</li>
+                            <li>Copy only the recent records you want to import</li>
+                            <li>Save as a new XML file and upload it here</li>
+                        </ol>
+                        <p className="text-sm font-medium">
+                            Or contact us to increase your upload limit!
+                        </p>
                     </AlertDescription>
                 </Alert>
 
