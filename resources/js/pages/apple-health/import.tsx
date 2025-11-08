@@ -73,10 +73,11 @@ export default function AppleHealthImport() {
                             <li>Scroll down and tap <strong>Export All Health Data</strong></li>
                             <li>Tap <strong>Export</strong> to confirm (this may take a few minutes)</li>
                             <li>
-                                <strong>For large files:</strong> In Files app, tap export.zip to extract it, 
-                                then upload the <strong>export.xml</strong> file directly (much smaller!)
+                                <strong>For large files (over 20MB):</strong> In Files app, extract the ZIP, 
+                                open the <strong>apple_health_export</strong> folder, 
+                                then upload the <strong>export.xml</strong> file (much smaller!)
                             </li>
-                            <li>Upload either the ZIP or XML file here</li>
+                            <li>Otherwise, upload the whole ZIP file here</li>
                         </ol>
                     </AlertDescription>
                 </Alert>
