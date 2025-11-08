@@ -111,7 +111,7 @@ export default function AppleHealthImport() {
                             Upload Health Export
                         </CardTitle>
                         <CardDescription>
-                            Drag and drop your export.zip or export.xml file (max 20MB)
+                            Drag and drop your export.zip or export.html file (max 20MB)
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -131,7 +131,7 @@ export default function AppleHealthImport() {
                                 <input
                                     type="file"
                                     id="file-upload"
-                                    accept=".xml,.zip"
+                                    accept=".html,.xml,.zip"
                                     onChange={handleFileChange}
                                     className="hidden"
                                 />
