@@ -25,6 +25,11 @@ const sidebarNavItems: NavItem[] = [
         title: 'Two-Factor Auth',
         href: show(),
         icon: null,
+    },
+    {
+        title: 'API Tokens',
+        href: '/settings/api-tokens',
+        icon: null,
     }
 ];
 
