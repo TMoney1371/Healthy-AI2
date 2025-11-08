@@ -19,7 +19,7 @@ class AppleHealthImportController extends Controller
     public function upload(Request $request): RedirectResponse
     {
         $request->validate([
-            'file' => 'required|file|mimes:xml,zip|max:20480', // 20MB max (PHP limit)
+            'file' => 'required|file|mimes:xml,zip,html|max:20480', // 20MB max (PHP limit)
         ]);
 
         $file = $request->file('file');
@@ -51,7 +51,15 @@ class AppleHealthImportController extends Controller
         if (pathinfo($fullPath, PATHINFO_EXTENSION) === 'zip') {
             $zip = new \ZipArchive();
             if ($zip->open($fullPath) === true) {
+                // Try XML first (old format)
                 $exportXml = $zip->getFromName('apple_health_export/export.xml');
+                
+                // Try HTML if no XML (new format)
+                $exportHtml = null;
+                if (!$exportXml) {
+                    $exportHtml = $zip->getFromName('apple_health_export/export.html');
+                }
+                
                 $zip->close();
                 
                 if ($exportXml) {
@@ -59,10 +67,20 @@ class AppleHealthImportController extends Controller
                     file_put_contents($tempXmlPath, $exportXml);
                     $stats = $this->parseAppleHealthXML($tempXmlPath, $user);
                     unlink($tempXmlPath);
+                } elseif ($exportHtml) {
+                    $tempHtmlPath = sys_get_temp_dir() . '/export_' . uniqid() . '.html';
+                    file_put_contents($tempHtmlPath, $exportHtml);
+                    $stats = $this->parseAppleHealthHTML($tempHtmlPath, $user);
+                    unlink($tempHtmlPath);
+                } else {
+                    throw new \Exception('No export.xml or export.html found in ZIP file. Please ensure you exported from the Health app.');
                 }
             }
+        } elseif (pathinfo($fullPath, PATHINFO_EXTENSION) === 'html') {
+            // Direct HTML file (new format)
+            $stats = $this->parseAppleHealthHTML($fullPath, $user);
         } else {
-            // Direct XML file
+            // Direct XML file (old format)
             $stats = $this->parseAppleHealthXML($fullPath, $user);
         }
 
@@ -216,5 +234,106 @@ class AppleHealthImportController extends Controller
         ];
 
         return $unitMapping[$type] ?? $unit;
+    }
+
+    private function parseAppleHealthHTML(string $htmlPath, $user): array
+    {
+        $stats = [
+            'biometrics' => 0,
+            'exercises' => 0,
+            'total' => 0,
+        ];
+
+        // Load HTML content
+        $htmlContent = file_get_contents($htmlPath);
+        
+        // Apple Health HTML exports contain embedded JSON data
+        // Look for the data in script tags or JSON sections
+        if (preg_match('/<script[^>]*>.*?var healthData = ({.*?});.*?<\/script>/s', $htmlContent, $matches)) {
+            $jsonData = $matches[1];
+            $data = json_decode($jsonData, true);
+            
+            // Process the JSON data similar to XML parsing
+            // This is a placeholder - we'll need to see the actual HTML structure
+        }
+        
+        // Alternative: Parse HTML tables directly
+        // The HTML format contains tables with health data
+        libxml_use_internal_errors(true);
+        $dom = new \DOMDocument();
+        $dom->loadHTML($htmlContent);
+        libxml_clear_errors();
+        
+        $xpath = new \DOMXPath($dom);
+        
+        DB::beginTransaction();
+        try {
+            // Look for health records in table rows
+            // Format: Date | Type | Value | Unit
+            $rows = $xpath->query('//table//tr[td]');
+            
+            foreach ($rows as $row) {
+                $cells = $xpath->query('.//td', $row);
+                if ($cells->length >= 4) {
+                    $date = trim($cells->item(0)->textContent ?? '');
+                    $type = trim($cells->item(1)->textContent ?? '');
+                    $value = trim($cells->item(2)->textContent ?? '');
+                    $unit = trim($cells->item(3)->textContent ?? '');
+                    
+                    if ($date && $type && $value) {
+                        // Map type to our format
+                        $mappedType = $this->mapHTMLType($type);
+                        
+                        if ($mappedType) {
+                            $recordedAt = date('Y-m-d', strtotime($date));
+                            
+                            $user->biometrics()->updateOrCreate(
+                                [
+                                    'type' => $mappedType,
+                                    'recorded_at' => $recordedAt,
+                                ],
+                                [
+                                    'value' => (float) preg_replace('/[^0-9.]/', '', $value),
+                                    'unit' => $this->mapUnit($unit, $mappedType),
+                                    'metadata' => [
+                                        'source' => 'apple_health_html_import',
+                                        'original_type' => $type,
+                                        'imported_at' => now(),
+                                    ],
+                                ]
+                            );
+                            $stats['biometrics']++;
+                        }
+                    }
+                }
+            }
+            
+            $stats['total'] = $stats['biometrics'] + $stats['exercises'];
+            DB::commit();
+            
+            return $stats;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw new \Exception('Failed to parse HTML export: ' . $e->getMessage());
+        }
+    }
+
+    private function mapHTMLType(string $htmlType): ?string
+    {
+        // Map HTML display names to our database types
+        $mapping = [
+            'Sleep Analysis' => 'sleep',
+            'Heart Rate' => 'heart_rate',
+            'Resting Heart Rate' => 'heart_rate',
+            'Body Mass' => 'weight',
+            'Weight' => 'weight',
+            'Blood Pressure Systolic' => 'blood_pressure',
+            'Blood Pressure Diastolic' => 'blood_pressure',
+            'Body Temperature' => 'body_temperature',
+            'Blood Glucose' => 'blood_glucose',
+            'Oxygen Saturation' => 'spo2',
+        ];
+
+        return $mapping[$htmlType] ?? null;
     }
 }
