@@ -49,6 +49,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('supplements', [\App\Http\Controllers\SupplementController::class, 'store'])->name('supplements.store');
     Route::patch('supplements/{supplement}', [\App\Http\Controllers\SupplementController::class, 'update'])->name('supplements.update');
     Route::delete('supplements/{supplement}', [\App\Http\Controllers\SupplementController::class, 'destroy'])->name('supplements.destroy');
+
+    // Apple Health Import routes
+    Route::get('apple-health/import', [\App\Http\Controllers\AppleHealthImportController::class, 'index'])->name('apple-health.import');
+    Route::post('apple-health/import', [\App\Http\Controllers\AppleHealthImportController::class, 'upload'])->name('apple-health.upload');
 });
 
 require __DIR__.'/settings.php';
