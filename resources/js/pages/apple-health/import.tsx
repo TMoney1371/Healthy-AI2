@@ -82,23 +82,22 @@ export default function AppleHealthImport() {
                     </AlertDescription>
                 </Alert>
 
-                {/* File Size Warning */}
-                <Alert className="border-amber-500/50 bg-amber-500/5">
+                {/* File Size Tip */}
+                <Alert className="border-blue-500/50 bg-blue-500/5">
                     <Info className="h-4 w-4" />
-                    <AlertTitle>File Still Too Large?</AlertTitle>
+                    <AlertTitle>Large File? (Over 500MB or slow upload)</AlertTitle>
                     <AlertDescription className="space-y-2">
                         <p className="text-sm">
-                            If your XML file is still over 20MB, you can use an online XML editor to filter recent data:
+                            If your file is over 500MB or taking too long, use our Python filter script:
                         </p>
                         <ol className="ml-4 list-inside list-decimal space-y-1 text-sm">
-                            <li>Visit <strong>codebeautify.org/xmlviewer</strong> on your computer</li>
-                            <li>Upload your export.xml file</li>
-                            <li>Use "Find" to search for recent dates (e.g., "2024" or "2025")</li>
-                            <li>Copy only the recent records you want to import</li>
-                            <li>Save as a new XML file and upload it here</li>
+                            <li>Download the script from <strong>GitHub → FILTER_APPLE_HEALTH.md</strong></li>
+                            <li>Run: <code className="rounded bg-background px-1">python filter_health_data.py export.xml 90</code></li>
+                            <li>This shrinks 3GB files down to ~10MB (last 90 days)</li>
+                            <li>Upload the filtered file</li>
                         </ol>
-                        <p className="text-sm font-medium">
-                            Or contact us to increase your upload limit!
+                        <p className="mt-2 text-sm font-medium">
+                            💡 Tip: Start with 30 days for fastest upload, then import more later!
                         </p>
                     </AlertDescription>
                 </Alert>
@@ -111,7 +110,7 @@ export default function AppleHealthImport() {
                             Upload Health Export
                         </CardTitle>
                         <CardDescription>
-                            Drag and drop your export.zip or export.html file (max 20MB)
+                            Drag and drop your export.zip, export.xml, or export.html file (max 500MB)
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
