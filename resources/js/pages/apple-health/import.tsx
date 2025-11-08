@@ -72,7 +72,11 @@ export default function AppleHealthImport() {
                             <li>Tap your <strong>profile picture</strong> in the top right</li>
                             <li>Scroll down and tap <strong>Export All Health Data</strong></li>
                             <li>Tap <strong>Export</strong> to confirm (this may take a few minutes)</li>
-                            <li>Save the <strong>export.zip</strong> file and upload it here</li>
+                            <li>
+                                <strong>For large files:</strong> In Files app, tap export.zip to extract it, 
+                                then upload the <strong>export.xml</strong> file directly (much smaller!)
+                            </li>
+                            <li>Upload either the ZIP or XML file here</li>
                         </ol>
                     </AlertDescription>
                 </Alert>
@@ -85,7 +89,7 @@ export default function AppleHealthImport() {
                             Upload Health Export
                         </CardTitle>
                         <CardDescription>
-                            Drag and drop your export.zip file or click to browse
+                            Drag and drop your export.zip or export.xml file (max 20MB)
                         </CardDescription>
                     </CardHeader>
                     <CardContent>

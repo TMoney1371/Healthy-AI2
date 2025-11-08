@@ -19,7 +19,7 @@ class AppleHealthImportController extends Controller
     public function upload(Request $request): RedirectResponse
     {
         $request->validate([
-            'file' => 'required|file|mimes:xml,zip|max:102400', // 100MB max
+            'file' => 'required|file|mimes:xml,zip|max:20480', // 20MB max (PHP limit)
         ]);
 
         $file = $request->file('file');
