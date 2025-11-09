@@ -55,7 +55,11 @@ def filter_apple_health_xml(input_file, output_file, days_back=7, data_types=Non
             'HKQuantityTypeIdentifierDietaryProtein',
             'HKQuantityTypeIdentifierDietaryCarbohydrates',
             'HKQuantityTypeIdentifierDietaryFatTotal',
+            'HKQuantityTypeIdentifierStepCount',  # Step counts (we'll aggregate daily)
         ]
+    
+    # Dictionary to store daily step aggregates
+    daily_steps = {}
     
     print(f"✂️  Filtering to:")
     print(f"   - Date: {cutoff_str} onwards ({days_back} days)")
@@ -70,6 +74,18 @@ def filter_apple_health_xml(input_file, output_file, days_back=7, data_types=Non
     for record in list(root.findall('.//Record')):
         record_type = record.get('type', '')
         start_date = record.get('startDate', '')
+        date_only = start_date[:10] if start_date else ''
+        
+        # Special handling for step counts - aggregate by day
+        if record_type == 'HKQuantityTypeIdentifierStepCount' and start_date >= cutoff_str:
+            value = float(record.get('value', 0))
+            if date_only not in daily_steps:
+                daily_steps[date_only] = {'total': 0, 'records': []}
+            daily_steps[date_only]['total'] += value
+            daily_steps[date_only]['records'].append(record)
+            # Remove this record (we'll add aggregated version later)
+            root.remove(record)
+            continue
         
         # Remove if too old OR not in our important types
         if start_date < cutoff_str or record_type not in data_types:
@@ -77,6 +93,19 @@ def filter_apple_health_xml(input_file, output_file, days_back=7, data_types=Non
             records_removed += 1
         else:
             records_kept += 1
+    
+    # Add back ONE step count record per day (aggregated)
+    steps_aggregated = 0
+    for date, data in daily_steps.items():
+        # Keep only the first record and update its value to the daily total
+        if data['records']:
+            first_record = data['records'][0]
+            first_record.set('value', str(int(data['total'])))
+            root.append(first_record)
+            records_kept += 1
+            steps_aggregated += 1
+    
+    print(f"   📊 Aggregated {steps_aggregated} days of step counts")
     
     # Keep all workouts within date range
     workouts_kept = 0
@@ -168,6 +197,7 @@ if __name__ == "__main__":
 - Blood pressure
 - Body temperature
 - Blood glucose
+- **Daily step counts** (total per day, not every individual count)
 - Workouts (all of them)
 - Nutrition (if you logged meals)
 
