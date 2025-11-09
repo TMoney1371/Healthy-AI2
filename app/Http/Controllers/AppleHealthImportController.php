@@ -147,7 +147,8 @@ class AppleHealthImportController extends Controller
 
                 $mappedExerciseType = $this->mapWorkoutType($workoutType);
                 
-                // Duration in Apple Health is in minutes (not seconds)
+                // Duration in Apple Health is stored as a decimal number representing minutes
+                // For example: 30.5 = 30.5 minutes, not seconds
                 $durationMinutes = $duration ? (int) round((float) $duration) : null;
                 
                 $user->exercises()->updateOrCreate(
