@@ -147,6 +147,9 @@ class AppleHealthImportController extends Controller
 
                 $mappedExerciseType = $this->mapWorkoutType($workoutType);
                 
+                // Duration in Apple Health is in minutes (not seconds)
+                $durationMinutes = $duration ? (int) round((float) $duration) : null;
+                
                 $user->exercises()->updateOrCreate(
                     [
                         'date' => date('Y-m-d', strtotime($startDate)),
@@ -154,12 +157,13 @@ class AppleHealthImportController extends Controller
                         'source' => 'apple_health_import',
                     ],
                     [
-                        'duration' => $duration ? round($duration / 60) : null, // Convert to minutes
+                        'duration' => $durationMinutes,
                         'calories' => $calories ? round($calories) : null,
                         'distance' => $distance ? round($distance, 2) : null,
                         'apple_watch_data' => [
                             'original_type' => $workoutType,
                             'start_date' => $startDate,
+                            'duration_raw' => $duration,
                             'imported_at' => now(),
                         ],
                     ]
