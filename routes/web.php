@@ -53,6 +53,19 @@ Route::middleware(['auth'])->group(function () {
     // Apple Health Import routes
     Route::get('apple-health/import', [\App\Http\Controllers\AppleHealthImportController::class, 'index'])->name('apple-health.import');
     Route::post('apple-health/import', [\App\Http\Controllers\AppleHealthImportController::class, 'upload'])->name('apple-health.upload');
+
+    // TC's Recommendations (public view)
+    Route::get('recommendations', [\App\Http\Controllers\RecommendationController::class, 'index'])->name('recommendations.index');
+
+    // Admin routes
+    Route::prefix('admin')->middleware('admin')->group(function () {
+        Route::get('recommendations', [\App\Http\Controllers\Admin\RecommendationController::class, 'index'])->name('admin.recommendations.index');
+        Route::get('recommendations/create', [\App\Http\Controllers\Admin\RecommendationController::class, 'create'])->name('admin.recommendations.create');
+        Route::post('recommendations', [\App\Http\Controllers\Admin\RecommendationController::class, 'store'])->name('admin.recommendations.store');
+        Route::get('recommendations/{recommendation}/edit', [\App\Http\Controllers\Admin\RecommendationController::class, 'edit'])->name('admin.recommendations.edit');
+        Route::patch('recommendations/{recommendation}', [\App\Http\Controllers\Admin\RecommendationController::class, 'update'])->name('admin.recommendations.update');
+        Route::delete('recommendations/{recommendation}', [\App\Http\Controllers\Admin\RecommendationController::class, 'destroy'])->name('admin.recommendations.destroy');
+    });
 });
 
 require __DIR__.'/settings.php';

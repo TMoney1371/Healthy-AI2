@@ -13,7 +13,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Activity, Apple, Calendar, Camera, Download, LayoutGrid, Pill } from 'lucide-react';
+import { Activity, Apple, Calendar, Camera, Download, LayoutGrid, Pill, Sparkles } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -26,6 +26,11 @@ const mainNavItems: NavItem[] = [
         title: 'Timeline',
         href: '/timeline',
         icon: Calendar,
+    },
+    {
+        title: "TC's Recommendations",
+        href: '/recommendations',
+        icon: Sparkles,
     },
     {
         title: 'Apple Health Import',
