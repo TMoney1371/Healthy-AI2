@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Apple, Calendar, Camera, Moon, Pill, TrendingUp, Utensils } from 'lucide-react';
 import { type BreadcrumbItem } from '@/types';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useMemo } from 'react';
 
 interface Biometric {
     id: number;
@@ -63,7 +65,54 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Timeline', href: '/timeline' },
 ];
 
-export default function TimelineIndex({ exercises, meals, stats }: Props) {
+export default function TimelineIndex({ biometrics, exercises, meals, stats }: Props) {
+    // Prepare chart data
+    const exerciseChartData = useMemo(() => {
+        const dailyData: { [key: string]: { date: string; duration: number; calories: number; count: number } } = {};
+        
+        exercises.forEach((ex) => {
+            const date = ex.date;
+            if (!dailyData[date]) {
+                dailyData[date] = { date, duration: 0, calories: 0, count: 0 };
+            }
+            dailyData[date].duration += ex.duration || 0;
+            dailyData[date].calories += ex.calories || 0;
+            dailyData[date].count += 1;
+        });
+        
+        return Object.values(dailyData).sort((a, b) => a.date.localeCompare(b.date));
+    }, [exercises]);
+
+    const weightChartData = useMemo(() => {
+        return biometrics
+            .filter((b) => b.type === 'weight')
+            .map((b) => ({
+                date: b.recorded_at,
+                weight: b.value,
+            }))
+            .sort((a, b) => a.date.localeCompare(b.date));
+    }, [biometrics]);
+
+    const sleepChartData = useMemo(() => {
+        return biometrics
+            .filter((b) => b.type === 'sleep')
+            .map((b) => ({
+                date: b.recorded_at,
+                hours: b.value,
+            }))
+            .sort((a, b) => a.date.localeCompare(b.date));
+    }, [biometrics]);
+
+    const heartRateChartData = useMemo(() => {
+        return biometrics
+            .filter((b) => b.type === 'heart_rate')
+            .map((b) => ({
+                date: b.recorded_at,
+                bpm: b.value,
+            }))
+            .sort((a, b) => a.date.localeCompare(b.date));
+    }, [biometrics]);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Health Timeline" />
@@ -141,6 +190,185 @@ export default function TimelineIndex({ exercises, meals, stats }: Props) {
                         </CardContent>
                     </Card>
                 </div>
+
+                {/* Exercise Activity Chart */}
+                {exerciseChartData.length > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Apple className="h-5 w-5" />
+                                Exercise Activity
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <BarChart data={exerciseChartData}>
+                                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                                    <XAxis 
+                                        dataKey="date" 
+                                        className="text-xs"
+                                        tick={{ fontSize: 12 }}
+                                    />
+                                    <YAxis 
+                                        yAxisId="left"
+                                        className="text-xs"
+                                        tick={{ fontSize: 12 }}
+                                    />
+                                    <YAxis 
+                                        yAxisId="right"
+                                        orientation="right"
+                                        className="text-xs"
+                                        tick={{ fontSize: 12 }}
+                                    />
+                                    <Tooltip 
+                                        contentStyle={{ 
+                                            backgroundColor: 'hsl(var(--card))',
+                                            border: '1px solid hsl(var(--border))',
+                                            borderRadius: '8px'
+                                        }}
+                                    />
+                                    <Legend />
+                                    <Bar yAxisId="left" dataKey="duration" fill="hsl(var(--secondary))" name="Duration (min)" />
+                                    <Bar yAxisId="right" dataKey="calories" fill="hsl(var(--accent))" name="Calories" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Sleep Tracking Chart */}
+                {sleepChartData.length > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Moon className="h-5 w-5" />
+                                Sleep Trends
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <LineChart data={sleepChartData}>
+                                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                                    <XAxis 
+                                        dataKey="date" 
+                                        className="text-xs"
+                                        tick={{ fontSize: 12 }}
+                                    />
+                                    <YAxis 
+                                        className="text-xs"
+                                        tick={{ fontSize: 12 }}
+                                        domain={[0, 12]}
+                                    />
+                                    <Tooltip 
+                                        contentStyle={{ 
+                                            backgroundColor: 'hsl(var(--card))',
+                                            border: '1px solid hsl(var(--border))',
+                                            borderRadius: '8px'
+                                        }}
+                                    />
+                                    <Legend />
+                                    <Line 
+                                        type="monotone" 
+                                        dataKey="hours" 
+                                        stroke="hsl(var(--primary))" 
+                                        strokeWidth={3}
+                                        dot={{ fill: 'hsl(var(--primary))', r: 4 }}
+                                        name="Sleep (hours)"
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Weight Tracking Chart */}
+                {weightChartData.length > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <TrendingUp className="h-5 w-5" />
+                                Weight Trends
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <LineChart data={weightChartData}>
+                                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                                    <XAxis 
+                                        dataKey="date" 
+                                        className="text-xs"
+                                        tick={{ fontSize: 12 }}
+                                    />
+                                    <YAxis 
+                                        className="text-xs"
+                                        tick={{ fontSize: 12 }}
+                                    />
+                                    <Tooltip 
+                                        contentStyle={{ 
+                                            backgroundColor: 'hsl(var(--card))',
+                                            border: '1px solid hsl(var(--border))',
+                                            borderRadius: '8px'
+                                        }}
+                                    />
+                                    <Legend />
+                                    <Line 
+                                        type="monotone" 
+                                        dataKey="weight" 
+                                        stroke="hsl(var(--chart-5))" 
+                                        strokeWidth={3}
+                                        dot={{ fill: 'hsl(var(--chart-5))', r: 4 }}
+                                        name="Weight (kg)"
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Heart Rate Chart */}
+                {heartRateChartData.length > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Activity className="h-5 w-5" />
+                                Resting Heart Rate
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <LineChart data={heartRateChartData}>
+                                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                                    <XAxis 
+                                        dataKey="date" 
+                                        className="text-xs"
+                                        tick={{ fontSize: 12 }}
+                                    />
+                                    <YAxis 
+                                        className="text-xs"
+                                        tick={{ fontSize: 12 }}
+                                        domain={[40, 100]}
+                                    />
+                                    <Tooltip 
+                                        contentStyle={{ 
+                                            backgroundColor: 'hsl(var(--card))',
+                                            border: '1px solid hsl(var(--border))',
+                                            borderRadius: '8px'
+                                        }}
+                                    />
+                                    <Legend />
+                                    <Line 
+                                        type="monotone" 
+                                        dataKey="bpm" 
+                                        stroke="hsl(var(--destructive))" 
+                                        strokeWidth={3}
+                                        dot={{ fill: 'hsl(var(--destructive))', r: 4 }}
+                                        name="Heart Rate (bpm)"
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Quick Actions */}
                 <Card>
