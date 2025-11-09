@@ -6,6 +6,7 @@ import { Activity, Apple, Calendar, Camera, Moon, Pill, TrendingUp, Utensils } f
 import { type BreadcrumbItem } from '@/types';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useMemo } from 'react';
+import { formatDate, formatChartDate } from '@/lib/date-utils';
 
 interface Biometric {
     id: number;
@@ -426,7 +427,7 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
                                             {exercise.duration} min • {exercise.calories} cal
                                         </p>
                                     </div>
-                                    <div className="text-sm text-muted-foreground">{exercise.date}</div>
+                                    <div className="text-sm text-muted-foreground">{formatDate(exercise.date)}</div>
                                 </div>
                             ))}
                             
@@ -442,7 +443,7 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
                                         </p>
                                     </div>
                                     <div className="text-sm text-muted-foreground">
-                                        {new Date(meal.consumed_at).toLocaleDateString()}
+                                        {formatDate(meal.consumed_at)}
                                     </div>
                                 </div>
                             ))}
