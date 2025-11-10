@@ -214,13 +214,6 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
                                         tick={{ fontSize: 12 }}
                                     />
                                     <YAxis 
-                                        yAxisId="left"
-                                        className="text-xs"
-                                        tick={{ fontSize: 12 }}
-                                    />
-                                    <YAxis 
-                                        yAxisId="right"
-                                        orientation="right"
                                         className="text-xs"
                                         tick={{ fontSize: 12 }}
                                     />
@@ -232,8 +225,7 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
                                         }}
                                     />
                                     <Legend />
-                                    <Bar yAxisId="left" dataKey="duration" fill="hsl(var(--secondary))" name="Duration (min)" />
-                                    <Bar yAxisId="right" dataKey="calories" fill="hsl(var(--accent))" name="Calories" />
+                                    <Bar dataKey="duration" fill="hsl(var(--secondary))" name="Duration (min)" />
                                 </BarChart>
                             </ResponsiveContainer>
                         </CardContent>
