@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Apple, Loader2 } from 'lucide-react';
 import { type BreadcrumbItem } from '@/types';
 import { FormEventHandler } from 'react';
+import { formatDate } from '@/lib/date-utils';
 
 interface Exercise {
     id: number;
@@ -187,7 +188,7 @@ export default function ExercisesIndex({ exercises }: Props) {
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
                                                 <p className="font-medium">{exercise.type}</p>
-                                                <p className="text-sm text-muted-foreground">{exercise.date}</p>
+                                                <p className="text-sm text-muted-foreground">{formatDate(exercise.date)}</p>
                                             </div>
                                             {exercise.source === 'apple_watch' && (
                                                 <Apple className="h-4 w-4 text-secondary" />

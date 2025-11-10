@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Activity, Loader2 } from 'lucide-react';
 import { type BreadcrumbItem } from '@/types';
 import { FormEventHandler } from 'react';
+import { formatDate } from '@/lib/date-utils';
 
 interface Biometric {
     id: number;
@@ -151,7 +152,7 @@ export default function BiometricsIndex({ biometrics }: Props) {
                                     <div key={entry.id} className="flex items-center justify-between rounded-lg border p-4">
                                         <div>
                                             <p className="font-medium capitalize">{entry.type.replace('_', ' ')}</p>
-                                            <p className="text-sm text-muted-foreground">{entry.recorded_at}</p>
+                                            <p className="text-sm text-muted-foreground">{formatDate(entry.recorded_at)}</p>
                                         </div>
                                         <div className="text-right">
                                             <p className="text-lg font-semibold">
