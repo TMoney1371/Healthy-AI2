@@ -103,6 +103,8 @@ class AppleHealthImportController extends Controller
         DB::beginTransaction();
         try {
             // Parse biometric records (sleep, heart rate, weight, etc.)
+            $dailySleep = []; // Aggregate sleep sessions by day
+            
             foreach ($xml->Record as $record) {
                 $type = (string) $record['type'];
                 $value = (string) $record['value'];
@@ -112,6 +114,23 @@ class AppleHealthImportController extends Controller
 
                 // Map Apple Health types to our types
                 $mappedType = $this->mapAppleHealthType($type);
+                
+                // Special handling for sleep - aggregate by day
+                if ($type === 'HKCategoryTypeIdentifierSleepAnalysis') {
+                    // Only count "Asleep" or "InBed" states, not "Awake"
+                    if (str_contains($value, 'Asleep') || str_contains($value, 'InBed') || str_contains($value, 'Core') || str_contains($value, 'Deep') || str_contains($value, 'REM')) {
+                        $dateKey = date('Y-m-d', strtotime($startDate));
+                        $start = strtotime($startDate);
+                        $end = strtotime($endDate);
+                        $durationHours = ($end - $start) / 3600;
+                        
+                        if (!isset($dailySleep[$dateKey])) {
+                            $dailySleep[$dateKey] = 0;
+                        }
+                        $dailySleep[$dateKey] += $durationHours;
+                    }
+                    continue;
+                }
                 
                 if ($mappedType && $value) {
                     $recordedAt = date('Y-m-d', strtotime($startDate));
@@ -135,6 +154,26 @@ class AppleHealthImportController extends Controller
                     );
                     $stats['biometrics']++;
                 }
+            }
+            
+            // Save aggregated sleep data
+            foreach ($dailySleep as $date => $totalHours) {
+                $user->biometrics()->updateOrCreate(
+                    [
+                        'type' => 'sleep',
+                        'recorded_at' => $date,
+                    ],
+                    [
+                        'value' => round($totalHours, 1),
+                        'unit' => 'hours',
+                        'metadata' => [
+                            'source' => 'apple_health_import',
+                            'original_type' => 'HKCategoryTypeIdentifierSleepAnalysis',
+                            'imported_at' => now(),
+                        ],
+                    ]
+                );
+                $stats['biometrics']++;
             }
 
             // Parse workout records
@@ -185,7 +224,7 @@ class AppleHealthImportController extends Controller
     private function mapAppleHealthType(string $appleType): ?string
     {
         $mapping = [
-            'HKQuantityTypeIdentifierSleepAnalysis' => 'sleep',
+            'HKCategoryTypeIdentifierSleepAnalysis' => 'sleep',
             'HKQuantityTypeIdentifierHeartRate' => 'heart_rate',
             'HKQuantityTypeIdentifierBodyMass' => 'weight',
             'HKQuantityTypeIdentifierBloodPressureSystolic' => 'blood_pressure',
