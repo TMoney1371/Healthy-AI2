@@ -112,7 +112,7 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
             .map((b) => ({
                 date: b.recorded_at,
                 dateFormatted: formatChartDate(b.recorded_at),
-                bpm: b.value,
+                bpm: b.value ? Math.round(b.value) : b.value,
             }))
             .sort((a, b) => a.date.localeCompare(b.date));
     }, [biometrics]);
@@ -206,7 +206,7 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
                         </CardHeader>
                         <CardContent>
                             <ResponsiveContainer width="100%" height={300}>
-                                <LineChart data={exerciseChartData}>
+                                <BarChart data={exerciseChartData}>
                                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                                     <XAxis 
                                         dataKey="dateFormatted"
@@ -229,16 +229,13 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
                                         }}
                                     />
                                     <Legend />
-                                    <Line 
-                                        type="monotone" 
+                                    <Bar 
                                         dataKey="duration" 
-                                        stroke="hsl(var(--secondary))" 
-                                        strokeWidth={3}
-                                        dot={{ fill: 'hsl(var(--secondary))', r: 5 }}
-                                        activeDot={{ r: 7 }}
+                                        fill="#3b82f6" 
+                                        radius={[8, 8, 0, 0]}
                                         name="Duration (min)" 
                                     />
-                                </LineChart>
+                                </BarChart>
                             </ResponsiveContainer>
                         </CardContent>
                     </Card>
