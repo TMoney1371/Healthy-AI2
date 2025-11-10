@@ -229,8 +229,11 @@ class AppleHealthImportController extends Controller
             return round($floatValue * 0.453592, 2);
         }
 
-        if ($type === 'spo2' && $floatValue <= 1) {
-            return round($floatValue * 100, 0);
+        if ($type === 'spo2') {
+            if ($floatValue <= 1) {
+                return round($floatValue * 100, 0);
+            }
+            return round($floatValue, 0);
         }
 
         if ($type === 'heart_rate') {
