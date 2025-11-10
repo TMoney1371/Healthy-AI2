@@ -117,17 +117,23 @@ class AppleHealthImportController extends Controller
                 
                 // Special handling for sleep - aggregate by day
                 if ($type === 'HKCategoryTypeIdentifierSleepAnalysis') {
-                    // Only count "Asleep" or "InBed" states, not "Awake"
-                    if (str_contains($value, 'Asleep') || str_contains($value, 'InBed') || str_contains($value, 'Core') || str_contains($value, 'Deep') || str_contains($value, 'REM')) {
+                    // Only count actual sleep states (Asleep, Core, Deep, REM) - NOT InBed or Awake
+                    if (str_contains($value, 'Asleep') && !str_contains($value, 'Awake')) {
                         $dateKey = date('Y-m-d', strtotime($startDate));
                         $start = strtotime($startDate);
                         $end = strtotime($endDate);
                         $durationHours = ($end - $start) / 3600;
                         
                         if (!isset($dailySleep[$dateKey])) {
-                            $dailySleep[$dateKey] = 0;
+                            $dailySleep[$dateKey] = ['total' => 0, 'sessions' => []];
                         }
-                        $dailySleep[$dateKey] += $durationHours;
+                        
+                        // Store session to check for overlaps
+                        $dailySleep[$dateKey]['sessions'][] = [
+                            'start' => $start,
+                            'end' => $end,
+                            'hours' => $durationHours,
+                        ];
                     }
                     continue;
                 }
@@ -156,8 +162,29 @@ class AppleHealthImportController extends Controller
                 }
             }
             
-            // Save aggregated sleep data
-            foreach ($dailySleep as $date => $totalHours) {
+            // Save aggregated sleep data (merge overlapping sessions)
+            foreach ($dailySleep as $date => $data) {
+                // Sort sessions by start time
+                usort($data['sessions'], fn($a, $b) => $a['start'] <=> $b['start']);
+                
+                // Merge overlapping time periods
+                $totalHours = 0;
+                $lastEnd = 0;
+                
+                foreach ($data['sessions'] as $session) {
+                    if ($session['start'] >= $lastEnd) {
+                        // No overlap, add full duration
+                        $totalHours += $session['hours'];
+                        $lastEnd = $session['end'];
+                    } else {
+                        // Overlap detected, only add non-overlapping portion
+                        if ($session['end'] > $lastEnd) {
+                            $totalHours += ($session['end'] - $lastEnd) / 3600;
+                            $lastEnd = $session['end'];
+                        }
+                    }
+                }
+                
                 $user->biometrics()->updateOrCreate(
                     [
                         'type' => 'sleep',
@@ -169,6 +196,7 @@ class AppleHealthImportController extends Controller
                         'metadata' => [
                             'source' => 'apple_health_import',
                             'original_type' => 'HKCategoryTypeIdentifierSleepAnalysis',
+                            'sessions_count' => count($data['sessions']),
                             'imported_at' => now(),
                         ],
                     ]
