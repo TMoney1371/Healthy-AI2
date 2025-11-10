@@ -206,16 +206,20 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
                         </CardHeader>
                         <CardContent>
                             <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={exerciseChartData}>
+                                <LineChart data={exerciseChartData}>
                                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                                     <XAxis 
-                                        dataKey="dateFormatted" 
+                                        dataKey="dateFormatted"
+                                        interval={1}
                                         className="text-xs"
-                                        tick={{ fontSize: 12 }}
+                                        tick={{ fontSize: 11 }}
+                                        angle={-45}
+                                        textAnchor="end"
+                                        height={60}
                                     />
                                     <YAxis 
                                         className="text-xs"
-                                        tick={{ fontSize: 12 }}
+                                        tick={{ fontSize: 11 }}
                                     />
                                     <Tooltip 
                                         contentStyle={{ 
@@ -225,8 +229,16 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
                                         }}
                                     />
                                     <Legend />
-                                    <Bar dataKey="duration" fill="hsl(var(--secondary))" name="Duration (min)" />
-                                </BarChart>
+                                    <Line 
+                                        type="monotone" 
+                                        dataKey="duration" 
+                                        stroke="hsl(var(--secondary))" 
+                                        strokeWidth={3}
+                                        dot={{ fill: 'hsl(var(--secondary))', r: 5 }}
+                                        activeDot={{ r: 7 }}
+                                        name="Duration (min)" 
+                                    />
+                                </LineChart>
                             </ResponsiveContainer>
                         </CardContent>
                     </Card>
@@ -246,13 +258,17 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
                                 <LineChart data={sleepChartData}>
                                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                                     <XAxis 
-                                        dataKey="dateFormatted" 
+                                        dataKey="dateFormatted"
+                                        interval={1}
                                         className="text-xs"
-                                        tick={{ fontSize: 12 }}
+                                        tick={{ fontSize: 11 }}
+                                        angle={-45}
+                                        textAnchor="end"
+                                        height={60}
                                     />
                                     <YAxis 
                                         className="text-xs"
-                                        tick={{ fontSize: 12 }}
+                                        tick={{ fontSize: 11 }}
                                         domain={[0, 12]}
                                     />
                                     <Tooltip 
@@ -266,9 +282,10 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
                                     <Line 
                                         type="monotone" 
                                         dataKey="hours" 
-                                        stroke="hsl(var(--primary))" 
+                                        stroke="#8b5cf6" 
                                         strokeWidth={3}
-                                        dot={{ fill: 'hsl(var(--primary))', r: 4 }}
+                                        dot={{ fill: '#8b5cf6', r: 5 }}
+                                        activeDot={{ r: 7 }}
                                         name="Sleep (hours)"
                                     />
                                 </LineChart>
@@ -291,13 +308,17 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
                                 <LineChart data={weightChartData}>
                                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                                     <XAxis 
-                                        dataKey="dateFormatted" 
+                                        dataKey="dateFormatted"
+                                        interval={1}
                                         className="text-xs"
-                                        tick={{ fontSize: 12 }}
+                                        tick={{ fontSize: 11 }}
+                                        angle={-45}
+                                        textAnchor="end"
+                                        height={60}
                                     />
                                     <YAxis 
                                         className="text-xs"
-                                        tick={{ fontSize: 12 }}
+                                        tick={{ fontSize: 11 }}
                                     />
                                     <Tooltip 
                                         contentStyle={{ 
@@ -310,9 +331,10 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
                                     <Line 
                                         type="monotone" 
                                         dataKey="weight" 
-                                        stroke="hsl(var(--chart-5))" 
+                                        stroke="#10b981" 
                                         strokeWidth={3}
-                                        dot={{ fill: 'hsl(var(--chart-5))', r: 4 }}
+                                        dot={{ fill: '#10b981', r: 5 }}
+                                        activeDot={{ r: 7 }}
                                         name="Weight (kg)"
                                     />
                                 </LineChart>
@@ -335,13 +357,17 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
                                 <LineChart data={heartRateChartData}>
                                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                                     <XAxis 
-                                        dataKey="dateFormatted" 
+                                        dataKey="dateFormatted"
+                                        interval={1}
                                         className="text-xs"
-                                        tick={{ fontSize: 12 }}
+                                        tick={{ fontSize: 11 }}
+                                        angle={-45}
+                                        textAnchor="end"
+                                        height={60}
                                     />
                                     <YAxis 
                                         className="text-xs"
-                                        tick={{ fontSize: 12 }}
+                                        tick={{ fontSize: 11 }}
                                         domain={[40, 100]}
                                     />
                                     <Tooltip 
@@ -355,9 +381,10 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
                                     <Line 
                                         type="monotone" 
                                         dataKey="bpm" 
-                                        stroke="hsl(var(--destructive))" 
+                                        stroke="#ef4444" 
                                         strokeWidth={3}
-                                        dot={{ fill: 'hsl(var(--destructive))', r: 4 }}
+                                        dot={{ fill: '#ef4444', r: 5 }}
+                                        activeDot={{ r: 7 }}
                                         name="Heart Rate (bpm)"
                                     />
                                 </LineChart>
