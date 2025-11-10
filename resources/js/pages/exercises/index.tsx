@@ -186,7 +186,7 @@ export default function ExercisesIndex({ exercises }: Props) {
                                     <div key={exercise.id} className="rounded-lg border p-4">
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
-                                                <p className="font-medium capitalize">{exercise.type}</p>
+                                                <p className="font-medium">{exercise.type}</p>
                                                 <p className="text-sm text-muted-foreground">{exercise.date}</p>
                                             </div>
                                             {exercise.source === 'apple_watch' && (

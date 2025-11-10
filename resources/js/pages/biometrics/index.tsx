@@ -155,7 +155,7 @@ export default function BiometricsIndex({ biometrics }: Props) {
                                         </div>
                                         <div className="text-right">
                                             <p className="text-lg font-semibold">
-                                                {entry.value} {entry.unit}
+                                                {entry.value ? Math.round(entry.value) : entry.value} {entry.unit}
                                             </p>
                                         </div>
                                     </div>

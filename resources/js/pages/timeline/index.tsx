@@ -424,7 +424,7 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
                                     <div className="flex-1">
                                         <p className="font-medium">{exercise.type}</p>
                                         <p className="text-sm text-muted-foreground">
-                                            {exercise.duration} min • {exercise.calories} cal
+                                            {exercise.duration} min{exercise.calories && ` • ${exercise.calories} cal`}
                                         </p>
                                     </div>
                                     <div className="text-sm text-muted-foreground">{formatDate(exercise.date)}</div>
