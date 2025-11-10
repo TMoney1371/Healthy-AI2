@@ -221,11 +221,6 @@ class AppleHealthImportController extends Controller
         return preg_replace('/(?<!^)([A-Z])/', ' $1', $cleaned);
     }
 
-        // Fallback: convert CamelCase to Title Case with spaces
-        $cleaned = str_replace('HKWorkoutActivityType', '', $workoutType);
-        return preg_replace('/(?<!^)([A-Z])/', ' $1', $cleaned);
-    }
-
     private function convertValue(string $value, string $unit, string $type): float
     {
         $floatValue = (float) $value;
@@ -238,19 +233,6 @@ class AppleHealthImportController extends Controller
             return round($floatValue * 100, 0);
         }
 
-        if ($type === 'heart_rate') {
-            return round($floatValue, 0);
-        }
-
-        return $floatValue;
-    }
-
-        // SpO2 is stored as 0-1 decimal (0.99 = 99%), convert to percentage
-        if ($type === 'spo2' && $floatValue <= 1) {
-            return round($floatValue * 100, 0);
-        }
-
-        // Round heart rate to whole numbers (no decimals)
         if ($type === 'heart_rate') {
             return round($floatValue, 0);
         }
