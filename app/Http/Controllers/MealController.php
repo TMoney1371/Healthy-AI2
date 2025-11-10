@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Meal;
 use App\Models\User;
+use App\Services\FoodAnalysisService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -25,7 +26,7 @@ class MealController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, FoodAnalysisService $foodAnalysis): RedirectResponse
     {
         $validated = $request->validate([
             'consumed_at' => 'required|date',
@@ -38,10 +39,29 @@ class MealController extends Controller
             'carbs' => 'nullable|numeric|min:0',
             'fat' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
+            'analyze_photo' => 'nullable|boolean',
         ]);
 
         if ($request->hasFile('photo')) {
             $validated['photo_path'] = $request->file('photo')->store('meals', 'public');
+            
+            // Auto-analyze if photo uploaded and OpenAI is configured
+            if ($request->boolean('analyze_photo', true) && config('openai.api_key')) {
+                try {
+                    $analysis = $foodAnalysis->analyzeFood($validated['photo_path']);
+                    
+                    // Use AI estimates if user didn't provide values
+                    $validated['calories'] = $validated['calories'] ?? $analysis['estimated_calories'];
+                    $validated['protein'] = $validated['protein'] ?? $analysis['estimated_protein'];
+                    $validated['carbs'] = $validated['carbs'] ?? $analysis['estimated_carbs'];
+                    $validated['fat'] = $validated['fat'] ?? $analysis['estimated_fat'];
+                    $validated['ai_analyzed'] = true;
+                    $validated['ai_analysis'] = $analysis;
+                } catch (\Exception $e) {
+                    // Log error but continue - don't block meal creation
+                    logger()->error('Food analysis failed', ['error' => $e->getMessage()]);
+                }
+            }
         }
 
         $request->user()->meals()->create($validated);

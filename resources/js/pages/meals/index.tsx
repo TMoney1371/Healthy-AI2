@@ -125,6 +125,11 @@ export default function MealsIndex({ meals }: Props) {
                                         </div>
                                     </div>
                                     {errors.photo && <p className="text-sm text-destructive">{errors.photo}</p>}
+                                    {photoPreview && (
+                                        <p className="text-xs text-muted-foreground">
+                                            ✨ AI will automatically analyze this photo and estimate nutrition
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div className="grid gap-4 sm:grid-cols-2">
