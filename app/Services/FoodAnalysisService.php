@@ -2,13 +2,19 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
-use OpenAI\Laravel\Facades\OpenAI;
 
 class FoodAnalysisService
 {
     public function analyzeFood(string $imagePath): array
     {
+        $apiKey = config('services.openai.api_key');
+        
+        if (!$apiKey) {
+            throw new \Exception('OpenAI API key not configured');
+        }
+        
         // Get full path to image
         $fullPath = Storage::disk('public')->path($imagePath);
         
@@ -16,8 +22,11 @@ class FoodAnalysisService
         $imageData = base64_encode(file_get_contents($fullPath));
         $mimeType = mime_content_type($fullPath);
         
-        // Call OpenAI Vision API
-        $result = OpenAI::chat()->create([
+        // Call OpenAI Vision API directly via HTTP
+        $response = Http::withHeaders([
+            'Authorization' => "Bearer {$apiKey}",
+            'Content-Type' => 'application/json',
+        ])->post('https://api.openai.com/v1/chat/completions', [
             'model' => 'gpt-4o',
             'messages' => [
                 [
@@ -39,8 +48,12 @@ class FoodAnalysisService
             'max_tokens' => 500,
         ]);
 
-        // Parse response
-        $content = $result->choices[0]->message->content;
+        if (!$response->successful()) {
+            throw new \Exception('OpenAI API request failed: ' . $response->body());
+        }
+
+        $result = $response->json();
+        $content = $result['choices'][0]['message']['content'] ?? '';
         
         // Extract JSON from response (in case GPT adds markdown)
         if (preg_match('/\{.*\}/s', $content, $matches)) {
