@@ -69,12 +69,12 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function TimelineIndex({ biometrics, exercises, meals, stats }: Props) {
     // Prepare chart data
     const exerciseChartData = useMemo(() => {
-        const dailyData: { [key: string]: { date: string; duration: number; calories: number; count: number } } = {};
+        const dailyData: { [key: string]: { date: string; dateFormatted: string; duration: number; calories: number; count: number } } = {};
         
         exercises.forEach((ex) => {
             const date = ex.date;
             if (!dailyData[date]) {
-                dailyData[date] = { date, duration: 0, calories: 0, count: 0 };
+                dailyData[date] = { date, dateFormatted: formatChartDate(date), duration: 0, calories: 0, count: 0 };
             }
             dailyData[date].duration += ex.duration || 0;
             dailyData[date].calories += ex.calories || 0;
@@ -89,6 +89,7 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
             .filter((b) => b.type === 'weight')
             .map((b) => ({
                 date: b.recorded_at,
+                dateFormatted: formatChartDate(b.recorded_at),
                 weight: b.value,
             }))
             .sort((a, b) => a.date.localeCompare(b.date));
@@ -99,6 +100,7 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
             .filter((b) => b.type === 'sleep')
             .map((b) => ({
                 date: b.recorded_at,
+                dateFormatted: formatChartDate(b.recorded_at),
                 hours: b.value,
             }))
             .sort((a, b) => a.date.localeCompare(b.date));
@@ -109,6 +111,7 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
             .filter((b) => b.type === 'heart_rate')
             .map((b) => ({
                 date: b.recorded_at,
+                dateFormatted: formatChartDate(b.recorded_at),
                 bpm: b.value,
             }))
             .sort((a, b) => a.date.localeCompare(b.date));
@@ -206,7 +209,7 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
                                 <BarChart data={exerciseChartData}>
                                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                                     <XAxis 
-                                        dataKey="date" 
+                                        dataKey="dateFormatted" 
                                         className="text-xs"
                                         tick={{ fontSize: 12 }}
                                     />
@@ -251,7 +254,7 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
                                 <LineChart data={sleepChartData}>
                                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                                     <XAxis 
-                                        dataKey="date" 
+                                        dataKey="dateFormatted" 
                                         className="text-xs"
                                         tick={{ fontSize: 12 }}
                                     />
@@ -296,7 +299,7 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
                                 <LineChart data={weightChartData}>
                                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                                     <XAxis 
-                                        dataKey="date" 
+                                        dataKey="dateFormatted" 
                                         className="text-xs"
                                         tick={{ fontSize: 12 }}
                                     />
@@ -340,7 +343,7 @@ export default function TimelineIndex({ biometrics, exercises, meals, stats }: P
                                 <LineChart data={heartRateChartData}>
                                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                                     <XAxis 
-                                        dataKey="date" 
+                                        dataKey="dateFormatted" 
                                         className="text-xs"
                                         tick={{ fontSize: 12 }}
                                     />
