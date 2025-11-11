@@ -21,10 +21,12 @@ class MealController extends Controller
             ->orderBy('consumed_at', 'desc')
             ->paginate(50);
 
-        // Transform photo_path to full URL for S3
+        // Transform photo_path to full URL
         $meals->getCollection()->transform(function ($meal) {
             if ($meal->photo_path) {
-                $meal->photo_url = Storage::disk('public')->url($meal->photo_path);
+                // Use AWS_URL if available (S3/R2), otherwise local storage
+                $baseUrl = config('filesystems.disks.s3.url') ?: config('app.url') . '/storage';
+                $meal->photo_url = $baseUrl . '/' . $meal->photo_path;
             }
             return $meal;
         });
