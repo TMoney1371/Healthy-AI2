@@ -24,9 +24,12 @@ class MealController extends Controller
         // Transform photo_path to full URL
         $meals->getCollection()->transform(function ($meal) {
             if ($meal->photo_path) {
-                // Use AWS_URL if available (S3/R2), otherwise local storage
-                $baseUrl = config('filesystems.disks.s3.url') ?: config('app.url') . '/storage';
-                $meal->photo_url = $baseUrl . '/' . $meal->photo_path;
+                $awsUrl = env('AWS_URL');
+                if ($awsUrl) {
+                    $meal->photo_url = $awsUrl . '/' . $meal->photo_path;
+                } else {
+                    $meal->photo_url = config('app.url') . '/storage/' . $meal->photo_path;
+                }
             }
             return $meal;
         });
