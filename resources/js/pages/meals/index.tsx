@@ -21,6 +21,7 @@ interface Meal {
     carbs: number | null;
     fat: number | null;
     photo_path: string | null;
+    photo_url?: string;
     ai_analyzed: boolean;
 }
 
@@ -259,10 +260,10 @@ export default function MealsIndex({ meals }: Props) {
                             <div className="space-y-4">
                                 {meals.data.map((meal) => (
                                     <div key={meal.id} className="rounded-lg border p-4">
-                                        {meal.photo_path && (
+                                        {meal.photo_url && (
                                             <div className="mb-3 aspect-video overflow-hidden rounded-lg">
                                                 <img
-                                                    src={`/storage/${meal.photo_path}`}
+                                                    src={meal.photo_url}
                                                     alt={meal.name}
                                                     className="h-full w-full object-cover"
                                                 />

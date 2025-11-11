@@ -21,6 +21,14 @@ class MealController extends Controller
             ->orderBy('consumed_at', 'desc')
             ->paginate(50);
 
+        // Transform photo_path to full URL for S3
+        $meals->getCollection()->transform(function ($meal) {
+            if ($meal->photo_path) {
+                $meal->photo_url = Storage::disk('public')->url($meal->photo_path);
+            }
+            return $meal;
+        });
+
         return Inertia::render('meals/index', [
             'meals' => $meals,
         ]);
